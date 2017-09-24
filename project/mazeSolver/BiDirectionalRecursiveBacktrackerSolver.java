@@ -7,24 +7,24 @@ import maze.Maze;
  */
 public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 
-	@Override
-	public void solveMaze(Maze maze) {
-		// TODO Auto-generated method stub
+  @Override
+  public void solveMaze(Maze maze) {
+    // TODO Auto-generated method stub
 
-	} // end of solveMaze()
-
-
-	@Override
-	public boolean isSolved() {
-		// TODO Auto-generated method stub
-		return false;
-	} // end if isSolved()
+  } // end of solveMaze()
 
 
-	@Override
-	public int cellsExplored() {
-		// TODO Auto-generated method stub
-		return 0;
-	} // end of cellsExplored()
+  @Override
+  public boolean isSolved() {
+    // TODO Auto-generated method stub
+    return false;
+  } // end if isSolved()
+
+
+  @Override
+  public int cellsExplored() {
+    // TODO Auto-generated method stub
+    return 0;
+  } // end of cellsExplored()
 
 } // end of class BiDirectionalRecursiveBackTrackerSolver
