@@ -656,7 +656,7 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 
     // add antialiasing
     RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
-                                              RenderingHints.VALUE_ANTIALIAS_ON);
+      RenderingHints.VALUE_ANTIALIAS_ON);
     hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
     offscreen.addRenderingHints(hints);
 
