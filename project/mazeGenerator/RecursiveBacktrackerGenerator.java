@@ -26,8 +26,8 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
     // rowSize and colSize for checking off visited cells, by default for normal/tunnel
     int rowSize = maze.sizeR;
     int colSize = maze.sizeC;
-    // Create an array to check all individual cells in the maze, whether they have been visited
-    boolean inMaze[][];
+    // Create an array to check all individual cells in the maze, whether visited
+    boolean visited[][];
     // Create list to store previous directions, used for backtracking
     List<Cell> previous = new ArrayList<Cell>();
     // Initialize total number of cells to check
@@ -40,15 +40,15 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
       colSize = maze.sizeC + (maze.sizeR + 1) / 2;
 
     // Initialize array of bools for visited cells and visit the first starting cell
-    inMaze = new boolean[rowSize][colSize];
-    toVisit = visitCell(maze, startCell, inMaze, toVisit);
+    visited = new boolean[rowSize][colSize];
+    toVisit = visitCell(maze, startCell, visited, toVisit);
 
     // Recursively go through the rest of the maze to map it out
-    recursivelyBacktrack(maze, startCell, inMaze, toVisit, previous);
+    recursivelyBacktrack(maze, startCell, visited, toVisit, previous);
   } // end of generateMaze()
 
   // #################### Maze generation ####################
-  private void recursivelyBacktrack(Maze maze, Cell cell, boolean[][]inMaze, int toVisit, List<Cell> prev) {
+  private void recursivelyBacktrack(Maze maze, Cell cell, boolean[][]visited, int toVisit, List<Cell> prev) {
     List<Integer> possibleDirs = new ArrayList<Integer>();
     Cell path;
     int index, direction, lastDir, numDirs;  // Directions and indexing
@@ -68,7 +68,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
       colShift = ORDINAL_COL_SHIFT;
     }
 
-    // Terminating condition, every cell has been inMaze
+    // Terminating condition, every cell has been visited
     if (toVisit == 0)
       return;
 
@@ -81,7 +81,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
       // When cell is not out of bounds
       if (inBounds(maze, rowEnd, colEnd)) {
         // If cell has not been visited add path to it as a possible direction
-        if(!inMaze[rowEnd][colEnd])
+        if(!visited[rowEnd][colEnd])
           possibleDirs.add(i);
       }
     }
@@ -101,11 +101,11 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
       // Move to the selected direction and mark it as visited
       cell.r += rowMove;
       cell.c += colMove;
-      toVisit = visitCell(maze, cell, inMaze, toVisit);
+      toVisit = visitCell(maze, cell, visited, toVisit);
 
       // Store previous direction for backtracking the recursively repeat
       prev.add(path);
-      recursivelyBacktrack(maze, cell, inMaze, toVisit, prev);
+      recursivelyBacktrack(maze, cell, visited, toVisit, prev);
     }
     else { // directions.size() == 0: Dead end has been reached, backtrack
       // Get direction of last move made
@@ -118,7 +118,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
       cell.r += (-1 * prevR);
       cell.c += (-1 * prevC);
       // Recursively call again moving in opposite direction
-      recursivelyBacktrack(maze, cell, inMaze, toVisit, prev);
+      recursivelyBacktrack(maze, cell, visited, toVisit, prev);
     }
   }
 
@@ -162,8 +162,8 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
   }
 
   // Mark cell as visited + reduce total number of cells left to visit by 1 and return
-  private int visitCell(Maze maze, Cell cell, boolean[][]inMaze, int toVisit) {
-    inMaze[cell.r][cell.c] = true;
+  private int visitCell(Maze maze, Cell cell, boolean[][]visited, int toVisit) {
+    visited[cell.r][cell.c] = true;
     toVisit--;
     maze.drawFtPrt(cell);
 
@@ -190,4 +190,5 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
     // Check row and col is between min and max
     return r >= minR && r < maxR && c >= minC && c < maxC;
   }
+
 } // end of class RecursiveBacktrackerGenerator
