@@ -55,20 +55,11 @@ public class GrowingTreeGenerator implements MazeGenerator {
     visited[startCell.r][startCell.c] = true;
     maze.drawFtPrt(startCell);
 
-    System.out.println("Start at: " + startCell.r + "," + startCell.c);
-
-    System.out.println("\nCell set has: ");
-    for(int i = 0; i < cellSet.size(); i++) {
-      System.out.println(" - Cell at: " + cellSet.get(i).r + "," + cellSet.get(i).c);
-    }
-    System.out.println();
-
     generateGrowingTreeMaze(maze, cellSet, visited);
   }
 
   // #################### Maze generation ####################
   private void generateGrowingTreeMaze(Maze maze, List<Cell> cellSet, boolean[][] visited) {
-    Cell cell, neighbour;
     METHOD method;
     int rowDiff, colDiff, direction;
 
@@ -77,18 +68,14 @@ public class GrowingTreeGenerator implements MazeGenerator {
       // Choose method to use based on chance
       method = selectMethod(threshold);
       // Select a cell based on the method
-      cell = selectCell(method, cellSet);
-
-      System.out.println("Selected cell: " + cell.r + "," + cell.c);
+      Cell cell = selectCell(method, cellSet);
 
       // Check if cell has unvisited neighbours
-      if(!hasVisitableNeighbours(maze, cell, visited)) {
+      if(!hasVisitableNeighbours(maze, cell, visited))
         cellSet.remove(cell); // Remove it if all of its neighbours has been visited
-        System.out.println("Cell has no visitable neighbours");
-      } else {
-        System.out.println("Cell has visitable neighbours");
+      else {
         // If it has visitable neighbours randomly select one and move to it
-        neighbour = selectRandomNeighbour(maze, cell, visited);
+        Cell neighbour = selectRandomNeighbour(maze, cell, visited);
 
         // Calculate move difference and overall direction
         rowDiff = neighbour.r - cell.r;
@@ -104,6 +91,9 @@ public class GrowingTreeGenerator implements MazeGenerator {
         // Add the neighbour to the set
         cellSet.add(neighbour);
       }
+
+      // [DEBUG] - Uncomment to view how many cells left to process
+      System.out.println("Cells to process = " + cellSet.size());
     }
   }
 
@@ -125,9 +115,6 @@ public class GrowingTreeGenerator implements MazeGenerator {
         min = row / 2;
       else              // Odd
         min = (row + 1) / 2;
-
-      // Create new max from minimum (range should be maxCol - 1 due to array diff)
-      maxCol += min - 1;
     }
 
     col = rand.nextInt(maxCol) + min;
@@ -145,16 +132,13 @@ public class GrowingTreeGenerator implements MazeGenerator {
     if (random <= randomChance)
       method = METHOD.RANDOM;
 
-    if (method == METHOD.RECENT)
-      System.out.println("Chosen recently added cell method");
-    else
-      System.out.println("Chosen random cell method");
-
     return method;
   }
 
   // Select cell from set depending on method used
   private Cell selectCell(METHOD method, List<Cell> cells) {
+    int last = cells.size() - 1;
+
     if (method == METHOD.RECENT) {  // Using method 1: selecting randomly
       /* Randomly choose a cell from the set, done by converting set to list then
        * Picking randomly from that list */
@@ -163,7 +147,7 @@ public class GrowingTreeGenerator implements MazeGenerator {
     }
 
     // Using method 2: selecting recently added (last element)
-    return cells.get(cells.size() - 1);
+    return cells.get(last);
   }
 
   // Return index of randomly selected cell from list
@@ -182,7 +166,7 @@ public class GrowingTreeGenerator implements MazeGenerator {
     // Check in all directions for neighbours
     for (int i = 0; i < Maze.NUM_DIR; i++) {
       // Access actual map stored in maze to get neighbours
-      if(maze.map[cell.r][cell.c].neigh[i] != null) {
+      if (maze.map[cell.r][cell.c].neigh[i] != null) {
         row = maze.map[cell.r][cell.c].neigh[i].r;
         col = maze.map[cell.r][cell.c].neigh[i].c;
         // Check if it has been visited or not, if not there is a visitable neighbour
@@ -210,11 +194,6 @@ public class GrowingTreeGenerator implements MazeGenerator {
         if(!visited[row][col])
           visitableNeighbours.add(maze.map[cell.r][cell.c].neigh[i]);
       }
-    }
-
-    System.out.println("\nNeighbours are: ");
-    for(int i = 0; i < visitableNeighbours.size(); i++) {
-      System.out.println(" - At: " + visitableNeighbours.get(i).r + "," + visitableNeighbours.get(i).c);
     }
 
     // 2. Randomly select one and return it

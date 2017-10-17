@@ -72,6 +72,9 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
     if (toVisit == 0)
       return;
 
+    // [DEBUG] - Uncomment to view how many cells left to process
+    // System.out.println("Cells left: " + toVisit);
+
     // Check in each direction for current cell
     for (int i = 0; i < numDirs; i++) {
       // Calculate end point of direction
@@ -140,9 +143,6 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
         min = row / 2;
       else              // Odd
         min = (row + 1) / 2;
-
-      // Create new max from minimum (range should be maxCol - 1 due to array diff)
-      maxCol += min - 1;
     }
 
     col = rand.nextInt(maxCol) + min;
