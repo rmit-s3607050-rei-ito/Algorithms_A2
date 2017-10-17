@@ -1,12 +1,18 @@
-To compile on server:
-javac -cp .:mazeSolver/SampleSolver.jar *.java
+README
+COSC1254 Programming Using C++ Assignment 2
 
-To run on server:
-java -cp .:mazeSolver/SampleSolver.jar MazeTester inputFilename n
+AUTHORS
+Pacific Thai - s3429648
+Rei Ito - s3607050
+
+CONTRIBUTORS
 
 
-From Discussion Board:
-For 'Recursive Backtracker' and 'Bidirectional Recursive Backtracker', as student reported that a recursive algorithm experienced an 'out of memory' issue, we have decided to only test those algorithms on mazes up to a size of 30 x 30.
+FILES
 
-For the rest generators and solvers, the tested mazes are still up to a size of 100 x 100.
 
+INSTALL
+- javac -cp .:mazeSolver/SampleSolver.jar *.java
+- java -cp .:mazeSolver/SampleSolver.jar MazeTester inputFilename n
+
+BUGS
