@@ -48,7 +48,6 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
   } // end of generateMaze()
 
   // #################### Maze generation ####################
-  // Normal type maze
   private void recursivelyBacktrack(Maze maze, Cell cell, boolean[][]inMaze, int toVisit, List<Cell> prev) {
     List<Integer> possibleDirs = new ArrayList<Integer>();
     Cell path;
@@ -124,7 +123,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
   }
 
   // #################### Utility functions ####################
-  // Select random starting position for a cell (rectangle)
+  // Select random starting position for a cell
   private Cell randomizeStartCell(Maze maze) {
     Random rand = new Random();
     int min, row, col;
