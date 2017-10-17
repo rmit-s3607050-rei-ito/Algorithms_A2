@@ -6,22 +6,8 @@ import maze.Maze;
 import maze.Cell;
 
 public class GrowingTreeGenerator implements MazeGenerator {
-  // Growing tree maze generator. As it is very general, here we implement as
-  // "usually pick the most recent cell, but occasionally pick a random cell"
-
-  // 1. Pick a random starting cell and add it to set Z (initially Z is empty,
-  // after addition it contains just the starting cell).
-
-  // 2. Using a particular strategy (see below)
-  // Select a cell b from Z. If cell b has unvisited neighbouring cells, randomly
-  // select a neighbour, carve a path to it, and add the selected neighbour to set Z.
-  // If b has no unvisited neighbours, remove it from Z.
-
-  // 3. Repeat step 2 until Z is empty.
-  // Depending on what strategy is used to select a cell from V , we obtain different behaviour. If we
-  // select the newest cell added to V , then this is the same as recursive backtracker. If we randomly select
-  // a cell in V , then this is similar to Prim’s generation approach. Other strategies can be a mixture of
-  // both (have a try!).
+  // NOTE: Comment was originally made here in skeleton code, so left alone.
+  // Growing tree maze generator. As it is very general, here we implement as usually pick the most recent cell, but occasionally pick a random cell"
 
   // Determine which method to use: prim's vs recursive
   private enum METHOD {
@@ -45,13 +31,14 @@ public class GrowingTreeGenerator implements MazeGenerator {
     // Initialize array of bools for visited cells
     visited = new boolean[rowSize][colSize];
 
-    // Define 'set' (using list instead) 'Z' to use, cellSet for better naming convention
+    /* Define 'set' (using list instead)
+     * 'Z' to use,  (cellSet used for better naming convention) */
     List<Cell> cellSet = new ArrayList<Cell>();
 
     // Select a random starting cell and add it to the cell set
     Cell startCell = randomizeStartCell(maze);
     cellSet.add(startCell);
-    // Visit it calling maze.drawFtPrt() to update internal maze
+    // Visit it, calling maze.drawFtPrt() to update internal maze
     visited[startCell.r][startCell.c] = true;
     maze.drawFtPrt(startCell);
 
@@ -87,9 +74,8 @@ public class GrowingTreeGenerator implements MazeGenerator {
 
         // Set the neighbour as visited
         visited[neighbour.r][neighbour.c] = true;
-        maze.drawFtPrt(neighbour);
-        // Add the neighbour to the set
-        cellSet.add(neighbour);
+        maze.drawFtPrt(neighbour);    // Set it drawn in the maze 
+        cellSet.add(neighbour);       // Add the neighbour to the set
       }
 
       // [DEBUG] - Uncomment to view how many cells left to process
