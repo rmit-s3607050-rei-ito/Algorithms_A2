@@ -7,30 +7,44 @@ import java.util.*;
 
 public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
-  // Range for directions
-  final static int NUM_NORMAL_DIR = 4;
+  // Cardinal directions for rectangle shape: N, S, E, W
+  final static int NUM_CARDINALS = 4;
   final static int[] CARDINALS = new int[] { Maze.NORTH, Maze.SOUTH, Maze.EAST, Maze.WEST };
   final static int[] CARDINAL_ROW_SHIFT = new int[] { 1, -1, 0, 0 };
   final static int[] CARDINAL_COL_SHIFT = new int[] { 0, 0, 1, -1 };
 
+  // Ordinal directions for hex shape: NE, NW, SE, SW, E, W
+  final static int NUM_ORDINALS = Maze.NUM_DIR;
+  final static int[] ORDINALS = new int[] { Maze.NORTHEAST, Maze.NORTHWEST,
+                                            Maze.SOUTHEAST, Maze.SOUTHWEST,
+                                            Maze.EAST, Maze.WEST,};
+  final static int[] ORDINAL_ROW_SHIFT = new int[] { 1, 1, -1, -1, 0, 0 };
+  final static int[] ORDINAL_COL_SHIFT = new int[] { 1, 0, 0, -1, 1, -1 };
+
   @Override
   public void generateMaze(Maze maze) {
     // Create an array to check all individual cells in the maze, whether they have been visited
-    boolean visited[][] = new boolean[maze.sizeR][maze.sizeC];
+    boolean visited[][];
     // Create list to store previous directions, used for backtracking
     List<Cell> previous = new ArrayList<Cell>();
     // Initialize total number of cells to check
     int toVisit = maze.sizeR * maze.sizeC;
+    // Randomly pick a starting cell / starting hex
+    Cell startCell = randomizeStartCell(maze);
 
-    // Randomly pick a starting cell and visit it, update number left to visit
-    Cell start = randomizeStartCell(maze.sizeR, maze.sizeC);
-    toVisit = visitCell(maze, start, visited, toVisit);
+    // Visit start then go through and generate the maze depending on the type
+    if (maze.type == Maze.NORMAL) {
+      visited = new boolean[maze.sizeR][maze.sizeC];
+      toVisit = visitCell(maze, startCell, visited, toVisit);
+      generateNormalMaze(maze, startCell, visited, toVisit, previous);
+    }
+    else if (maze.type == Maze.HEX) {
+      visited = new boolean[maze.sizeR][maze.sizeC + (maze.sizeR + 1) / 2];
+      toVisit = visitCell(maze, startCell, visited, toVisit);
+      generateHexMaze(maze, startCell, visited, toVisit, previous);
+    }
 
-    // Go through and generate the maze depending on the type
-    if (maze.type == Maze.NORMAL)
-      generateNormalMaze(maze, start, visited, toVisit, previous);
-    else if (maze.type == Maze.HEX)
-      generateHexMaze(maze);
+    maze.validate();
 
   } // end of generateMaze()
 
@@ -47,13 +61,13 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
       return;
 
     // Check in each direction for current cell
-    for (int i = 0; i < NUM_NORMAL_DIR; i++) {
+    for (int i = 0; i < NUM_CARDINALS; i++) {
       // Calculate end point of direction
       rowEnd = cell.r + CARDINAL_ROW_SHIFT[i];
       colEnd = cell.c + CARDINAL_COL_SHIFT[i];
 
       // When cell is not out of bounds
-      if (inBounds(rowEnd, colEnd, maze.sizeR, maze.sizeC)) {
+      if (inBounds(maze, rowEnd, colEnd)) {
         // If cell has not been visited add path to it as a possible direction
         if(!visited[rowEnd][colEnd])
           directions.add(i);
@@ -96,20 +110,92 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
     }
   }
 
-  private void generateHexMaze(Maze maze) {
+  private void generateHexMaze(Maze maze, Cell cell, boolean[][]visited, int toVisit, List<Cell> prev) {
+    List<Integer> directions = new ArrayList<Integer>();
+    Cell path;
+    int index, direction, lastDir;
+    int rowMove, colMove, rowEnd, colEnd, prevR, prevC;
 
+    // Terminating condition, every cell has been visited
+    if (toVisit == 0)
+      return;
+
+    // Check in each direction for current cell
+    for (int i = 0; i < NUM_ORDINALS; i++) {
+      // Calculate end point of direction
+      rowEnd = cell.r + ORDINAL_ROW_SHIFT[i];
+      colEnd = cell.c + ORDINAL_COL_SHIFT[i];
+
+      // When cell is not out of bounds
+      if (inBounds(maze, rowEnd, colEnd)) {
+        // If cell has not been visited add path to it as a possible direction
+        if(!visited[rowEnd][colEnd])
+          directions.add(i);
+      }
+    }
+
+    // When there is a possible direction to move in, pick one and move to it
+    if (directions.size() > 0) {
+      // Pick a random index for a direction and get it from the cardinals
+      index = pickRandomDirection(directions);
+      direction = ORDINALS[index];
+      // Store movement in 'path' variable
+      rowMove = ORDINAL_ROW_SHIFT[index];
+      colMove = ORDINAL_COL_SHIFT[index];
+      path = new Cell(rowMove, colMove);
+      // Remove and hide wall in path
+      maze.map[cell.r][cell.c].wall[direction].present = false;
+      maze.map[cell.r][cell.c].wall[direction].drawn = false;
+
+      // Move to the selected direction and mark it as visited
+      cell.r += rowMove;
+      cell.c += colMove;
+      toVisit = visitCell(maze, cell, visited, toVisit);
+
+      // Store previous direction for backtracking the recursively repeat
+      prev.add(path);
+      generateHexMaze(maze, cell, visited, toVisit, prev);
+    }
+    else { // directions.size() == 0: Dead end has been reached, backtrack
+      // Get direction of last move made
+      lastDir = prev.size() - 1;    // Last index of array list
+      prevR = prev.get(lastDir).r;
+      prevC = prev.get(lastDir).c;
+      prev.remove(lastDir);         // Remove last from the list
+
+      // Move in opposite direction of previous move
+      cell.r += (-1 * prevR);
+      cell.c += (-1 * prevC);
+
+      // Recursively call again moving in opposite direction
+      generateHexMaze(maze, cell, visited, toVisit, prev);
+    }
   }
 
   // #################### Utility functions ####################
-  // Select random starting position for a cell
-  private Cell randomizeStartCell(int maxRow, int maxCol) {
+  // Select random starting position for a cell (rectangle)
+  private Cell randomizeStartCell(Maze maze) {
     Random rand = new Random();
     int min, row, col;
+    int maxRow = maze.sizeR;
+    int maxCol = maze.sizeC;
 
     min = 0;  // Arrays start from 0
     row = rand.nextInt(maxRow) + min;
-    col = rand.nextInt(maxCol) + min;
 
+    // Further restrict values if hex type maze
+    if (maze.type == Maze.HEX) {
+      // Cases: When row is even or odd, which affects col generated
+      if (row % 2 == 0) // Even
+        min = row / 2;
+      else              // Odd
+        min = (row + 1) / 2;
+
+      // Create new max from minimum (range should be maxCol - 1 due to array diff)
+      maxCol += min - 1;
+    }
+
+    col = rand.nextInt(maxCol) + min;
     Cell cell = new Cell(row, col);
 
     return cell;
@@ -125,7 +211,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
     return index;
   }
 
-  // Mark cell as visited + reduce total number of cells left to visit by 1
+  // Mark cell as visited + reduce total number of cells left to visit by 1 and return
   private int visitCell(Maze maze, Cell cell, boolean[][]visited, int toVisit) {
     visited[cell.r][cell.c] = true;
     toVisit--;
@@ -135,11 +221,23 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
   }
 
   // Check to ensure coordinates are inside the maze
-  private boolean inBounds(int row, int col, int rowMax, int colMax) {
-    if (row < 0 || col < 0 || row >= rowMax || col >= colMax)
-      return false;
+  private boolean inBounds(Maze m, int r, int c) {
+    // Minimum and maxiumum values for row and col
+    int minR = 0, maxR = m.sizeR;
+    int minC = 0, maxC = m.sizeC;
 
-    return true;
+    /* Hex maze type use same check in randomizeStartHex:
+     * Have to determine col boundary based on row */
+    if (m.type == Maze.HEX) {
+      if (r % 2 == 0)
+        minC = r / 2;
+      else
+        minC = (r + 1) / 2;
+
+      maxC += minC;
+    }
+
+    // Check row and col is between min and max
+    return r >= minR && r < maxR && c >= minC && c < maxC;
   }
-
 } // end of class RecursiveBacktrackerGenerator
