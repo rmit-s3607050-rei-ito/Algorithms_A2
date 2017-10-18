@@ -44,7 +44,7 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
   // neighbour.
 
   // Continues this process until deadend (no unvisited neighbours), then backtrack
-  // to a previous cell that has an unvisited neighbour.
+  // to a prev cell that has an unvisited neighbour.
 
   // Randomly select one of the unvisited neighbours and repeat process until reached
   // exit (this is always possible for a perfect maze). The path from entrance to exit is the
@@ -67,8 +67,8 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
     // Create array that is used to mark off visited cells
     boolean visited[][] = new boolean[maze.sizeR][colSize];
 
-    // Create list to store previous directions, used for backtracking
-    List<Cell> previous = new ArrayList<Cell>();
+    // Create list to store prev directions, used for backtracking
+    List<Cell> prev = new ArrayList<Cell>();
 
     // Tracking number of cells explored
     int numExplored = 0;
@@ -78,9 +78,25 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
     // Cell moving from exit of maze
     // Cell end = maze.exit;
 
+    // Set starting point as visited, add it as a previously moved location
+    visited[start.r][start.c] = true;
+    maze.drawFtPrt(start);
+
     System.out.println("Start at: " + start.r + "," + start.c);
 
-    solveMazeRecursively(maze, start, visited, previous, numExplored);
+    solveMazeRecursively(maze, start, visited, prev);
+
+    // Once maze solved calculate number of steps taken
+    int numCellsVisited = 0;
+    for(int i = 0; i < maze.sizeR; i++) {
+      for (int j = 0; j < colSize; j++) {
+        if (visited[i][j]) {
+          // System.out.println("Visited: " + i + "," + j);
+          numCellsVisited++;
+        }
+      }
+    }
+    solver.setNumCellsExplored(numCellsVisited);
 
   } // end of solveMaze()
 
@@ -95,28 +111,56 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
   } // end of cellsExplored()
 
   // #################### Main solving function ####################
-  private void solveMazeRecursively(Maze maze, Cell cell, boolean[][] visited, List<Cell> previous, int numExplored) {
+  private void solveMazeRecursively(Maze maze, Cell cell, boolean[][] visited, List<Cell> prev) {
     // 1. At cell collect all visitable neighbours and select one randomly to visit
-    Cell neighbour = getRandomVisitableNeighbour(maze, cell, visited);
+    List<Cell> visitableNeighbours = getAllVisitableNeighbours(maze, cell, visited);
 
+    // Pick a random neighbour a visit them
+    if (visitableNeighbours.size() > 0) {
+      Cell neighbour = getRandomFromList(visitableNeighbours);
+      System.out.println("Moved to: " + neighbour.r + "," + neighbour.c);
+      // Store movement to list of previously made moves to backtrack later
+      int row = neighbour.r - cell.r;
+      int col = neighbour.c - cell.c;
+      Cell previousMove = new Cell(row, col);
+      prev.add(previousMove);
+
+      // Mark it as visited and show it on the maze
+      visited[neighbour.r][neighbour.c] = true;
+      maze.drawFtPrt(neighbour);
+
+      // Move cell to neighbour's location
+      cell = neighbour;
+
+      // Check whether end spot is actually exit, if so then just exit
+      if (cell == maze.exit) {
+        solver.setSolved();
+        return;
+      }
+
+      // Otherwise recursively call to continue
+      solveMazeRecursively(maze, cell, visited, prev);
+    } else {
+      // Get move made before most recent
+      int lastDir = prev.size() - 1;
+      Cell lastMove = prev.get(lastDir);
+      // System.out.println("Move back: " + (-1 * lastMove.r) + "," + (-1 * lastMove.c));
+
+      // Move cell back in opposite direction from which it moved
+      cell.r += (-1 * lastMove.r);
+      cell.c += (-1 * lastMove.c);
+      maze.drawFtPrt(cell);
+
+      System.out.println("Moved back to: " + cell.r + "," + cell.c);
+
+      // Remove that move from the previous move list
+      prev.remove(lastDir);
+      // Recursively call to continue
+      solveMazeRecursively(maze, cell, visited, prev);
+    }
   }
 
   // #################### Utility functions ####################
-  // NOTE: REMOVE FOR WHEN BI-DIRECTIONAL IS IMPLEMENTED
-  private boolean isAtExit(Maze maze, Cell cell) {
-    int currRow = cell.r;
-    int currCol = cell.c;
-    int exitRow = maze.exit.r;
-    int exitCol = maze.exit.c;
-
-    if (currRow == exitRow && currCol == exitCol) {
-      solver.setSolved();
-      return true;
-    }
-
-    return false;
-  }
-
   private Cell getRandomFromList(List<Cell> list) {
     Random rand = new Random();
     int listSize = list.size();
@@ -125,7 +169,7 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
     return list.get(index);
   }
 
-  private Cell getRandomVisitableNeighbour(Maze maze, Cell cell, boolean[][] visited) {
+  private List<Cell> getAllVisitableNeighbours(Maze maze, Cell cell, boolean[][] visited) {
     List<Cell> visitableNeighbours = new ArrayList<Cell>();
     int index, row, col;
     Cell currCell = maze.map[cell.r][cell.c];
@@ -145,14 +189,12 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
       }
     }
 
-    System.out.println("Can visit: ");
-    for (Cell c : visitableNeighbours) {
-      System.out.println(" - Neighbour: " + c.r + "," + c.c);
-    }
+    // System.out.println("Can visit: ");
+    // for (int i = 0; i < visitableNeighbours.size(); i++) {
+    //   System.out.println(" - Neighbour: " + visitableNeighbours.get(i).r + "," + visitableNeighbours.get(i).c);
+    // }
 
-    Cell randomNeighbour = getRandomFromList(visitableNeighbours);
-    System.out.println("Chosen: " + randomNeighbour.r + "," + randomNeighbour.c);
-    return randomNeighbour;
+    return visitableNeighbours;
   }
 
 } // end of class BiDirectionalRecursiveBackTrackerSolver

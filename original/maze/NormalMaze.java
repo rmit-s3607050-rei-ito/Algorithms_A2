@@ -198,7 +198,7 @@ public class NormalMaze extends Maze {
   public void drawFtPrt(Cell cell) {
     // record every cell drawn
     isRecorded[cell.r][cell.c] = true;
-
+    
     // draw nothing if visualization is switched off
     if (!isVisu)
       return;
