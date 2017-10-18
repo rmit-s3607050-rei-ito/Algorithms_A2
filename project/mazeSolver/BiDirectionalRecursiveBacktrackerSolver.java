@@ -96,7 +96,6 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 
   // #################### Main solving function ####################
   private void solveMazeRecursively(Maze maze, Cell cell, boolean[][] visited, List<Cell> previous, int numExplored) {
-    Cell neighbour;
     // 1. At cell collect all visitable neighbours and select one randomly to visit
     Cell neighbour = getRandomVisitableNeighbour(maze, cell, visited);
 
