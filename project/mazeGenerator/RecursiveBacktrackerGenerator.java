@@ -1,19 +1,19 @@
 package mazeGenerator;
 
-import maze.Wall;
-import maze.Cell;
-import maze.Maze;
 import java.util.*;
+
+import maze.Maze;
+import maze.Cell;
 
 public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
-  // Cardinal directions for rectangle shape: N, S, E, W
+  // 1. Cardinal directions for rectangle shape: N, S, E, W
   final static int NUM_CARDINALS = 4;
   final static int[] CARDINALS = new int[] { Maze.NORTH, Maze.SOUTH, Maze.EAST, Maze.WEST };
   final static int[] CARDINAL_ROW_SHIFT = new int[] { 1, -1, 0, 0 };
   final static int[] CARDINAL_COL_SHIFT = new int[] { 0, 0, 1, -1 };
 
-  // Ordinal directions for hex shape: NE, NW, SE, SW, E, W
+  // 2. Ordinal directions for hex shape: NE, NW, SE, SW, E, W
   final static int NUM_ORDINALS = Maze.NUM_DIR;
   final static int[] ORDINALS = new int[] { Maze.NORTHEAST, Maze.NORTHWEST,
                                             Maze.SOUTHEAST, Maze.SOUTHWEST,
@@ -165,7 +165,6 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
   private int visitCell(Maze maze, Cell cell, boolean[][]visited, int toVisit) {
     visited[cell.r][cell.c] = true;
     toVisit--;
-    maze.drawFtPrt(cell);
 
     return toVisit;
   }
