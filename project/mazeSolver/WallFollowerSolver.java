@@ -59,10 +59,10 @@ public class WallFollowerSolver implements MazeSolver {
       System.out.println("Exit: " + maze.exit.r + " , " + maze.exit.c);
       for (int i = 0; i < priority.length; i++) {
         //System.out.println("Priority: " + priority[i]);
-        if (curr.r == maze.exit.r && curr.c == maze.exit.r) {
+        if (curr == maze.exit) {
           System.out.println("solved!");
           solved = true;
-          maze.drawFtPrt(curr.neigh[priority[i]]);
+          //maze.drawFtPrt(curr.neigh[priority[i]]);
           break;
         } else if (!curr.wall[priority[i]].present) {
           System.out.println("No wall at: " + priority[i]);
@@ -72,8 +72,6 @@ public class WallFollowerSolver implements MazeSolver {
           explored++;
           System.out.println("New pos: " + curr.r + " , " + curr.c);
           break;
-        } else {
-          solved = false;
         }
       }
 
