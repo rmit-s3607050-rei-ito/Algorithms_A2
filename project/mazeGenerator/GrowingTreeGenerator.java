@@ -20,16 +20,13 @@ public class GrowingTreeGenerator implements MazeGenerator {
 
   @Override
   public void generateMaze(Maze maze) {
-    // rowSize and colSize for checking off visited cells, by default for normal/tunnel
-    int rowSize = maze.sizeR;
+    // colSize for checking off visited cells, default value for normal / tunnel mazes
     int colSize = maze.sizeC;
-    // Create an array to check all individual cells in the maze, whether visited
-    boolean visited[][];
     // Change column dimensions if hex maze used
     if (maze.type == Maze.HEX)
       colSize = maze.sizeC + (maze.sizeR + 1) / 2;
-    // Initialize array of bools for visited cells
-    visited = new boolean[rowSize][colSize];
+    // Create array that is used to mark off visited cells
+    boolean visited[][] = new boolean[maze.sizeR][colSize];
 
     /* Define 'set' (using list instead)
      * 'Z' to use,  (cellSet used for better naming convention) */
