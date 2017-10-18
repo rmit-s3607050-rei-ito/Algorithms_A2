@@ -11,200 +11,100 @@ import maze.Cell;
 
 public class WallFollowerSolver implements MazeSolver {
 
-  /* Used from RecursiveBacktrackerGenerator class
-   * 1. Cardinal directions for rectangle shape: N, S, E, W */
-  final static int NUM_CARDINALS = 4;
-  final static int[] CARDINALS = new int[] { Maze.NORTH, Maze.SOUTH, Maze.EAST, Maze.WEST };
-  final static int[] CARDINAL_ROW_SHIFT = new int[] { 1, -1, 0, 0 };
-  final static int[] CARDINAL_COL_SHIFT = new int[] { 0, 0, 1, -1 };
-
-  // 2. Ordinal directions for hex shape: NE, NW, SE, SW, E, W
-  final static int NUM_ORDINALS = Maze.NUM_DIR;
-  final static int[] ORDINALS = new int[] { Maze.NORTHEAST, Maze.NORTHWEST,
-                                            Maze.SOUTHEAST, Maze.SOUTHWEST,
-                                            Maze.EAST, Maze.WEST,};
-  final static int[] ORDINAL_ROW_SHIFT = new int[] { 1, 1, -1, -1, 0, 0 };
-  final static int[] ORDINAL_COL_SHIFT = new int[] { 1, 0, 0, -1, 1, -1 };
-
-  /* Used as per reccommendation made on discussion board:
-   * "Create a class Boolean which you'll set (from some other method)
-   * when the maze is solved. Then all isSolved() needs to do is to return the
-   * value of that boolean." */
-
-  private class SolverParameters {
-    boolean solved;
-    int numCellsExplored;
-
-    // Constructor
-    SolverParameters() {
-      solved = false;         // Default not solved
-      numCellsExplored = 0;   // Default none explored
-    }
-
-    // Getters
-    public boolean getSolved() {
-      return solved;
-    }
-    public int getNumCellsExplored() {
-      return numCellsExplored;
-    }
-
-    // Setters
-    public void setSolved() {
-      solved = true;
-    }
-    public void setNumCellsExplored(int numExplored) {
-      numCellsExplored = numExplored;
-    }
-  }
-  private static SolverParameters solver;
-
-  // Follows passages in the maze, and when it comes to an intersection,
-  // always turn left or right (either is okay, but as long as consistent).
+  boolean solved = false;
+  int explored = 0;
 
   @Override
   public void solveMaze(Maze maze) {
-    // Initialize solver parameters
-    solver = new SolverParameters();
-    int numVisited = 0;
+    Cell curr = maze.entrance;
+    int facing = getStartFace(curr);
 
-    // Start at entrance of maze
-    Cell start = new Cell(maze.entrance.r, maze.entrance.c);
-    // Mark it as visited and increment number of cells explored as 1
-    maze.drawFtPrt(start);
-    numVisited++;
+    int count = 3;
+    //while (count > 0) {
+    while (!solved) {
+      int[] priority = new int[4];
+      System.out.println("Facing: " + facing);
+      switch (facing) {
+        case Maze.NORTH:
+          //System.out.println("North");
+          priority[0] = Maze.EAST;
+          priority[1] = Maze.NORTH;
+          priority[2] = Maze.WEST;
+          priority[3] = Maze.SOUTH;
+          break;
+        case Maze.SOUTH:
+          //System.out.println("South");
+          priority[0] = Maze.WEST;
+          priority[1] = Maze.SOUTH;
+          priority[2] = Maze.EAST;
+          priority[3] = Maze.NORTH;
+          break;
+        case Maze.EAST:
+          //System.out.println("East");
+          priority[0] = Maze.NORTH;
+          priority[1] = Maze.EAST;
+          priority[2] = Maze.SOUTH;
+          priority[3] = Maze.WEST;
+          break;
+        case Maze.WEST:
+          //System.out.println("West");
+          priority[0] = Maze.SOUTH;
+          priority[1] = Maze.WEST;
+          priority[2] = Maze.NORTH;
+          priority[3] = Maze.EAST;
+          break;
+      }
 
-    // Traverse through maze until solved
-    wallFollowerSolveMaze(maze, start, numVisited);
+      System.out.println("Curr pos: " + curr.r + " , " + curr.c);
+      System.out.println("Exit: " + maze.exit.r + " , " + maze.exit.c);
+      for (int i = 0; i < priority.length; i++) {
+        //System.out.println("Priority: " + priority[i]);
+        if (curr.r == maze.exit.r && curr.c == maze.exit.r) {
+          System.out.println("solved!");
+          solved = true;
+          maze.drawFtPrt(curr.neigh[priority[i]]);
+          break;
+        } else if (!curr.wall[priority[i]].present) {
+          System.out.println("No wall at: " + priority[i]);
+          facing = priority[i];
+          maze.drawFtPrt(curr.neigh[priority[i]]);
+          curr = curr.neigh[priority[i]];
+          explored++;
+          System.out.println("New pos: " + curr.r + " , " + curr.c);
+          break;
+        } else {
+          solved = false;
+        }
+      }
 
+      //System.out.println("Facing after: " + facing);
+      //count--;
+    }
   } // end of solveMaze()
+
+  private int getStartFace(Cell start) {
+    Random rand = new Random();
+    List<Integer> randDir = new ArrayList<Integer>();
+    for (int i = 0; i < start.wall.length; i++) {
+      if (start.wall[i] != null) {
+        if (!start.wall[i].present && !start.wall[i].drawn) {
+          randDir.add(i);
+        }
+      }
+    }
+
+    return randDir.get(rand.nextInt(randDir.size()));
+  }
 
   @Override
   public boolean isSolved() {
-    return solver.getSolved();
+    return solved;
   } // end if isSolved()
+
 
   @Override
   public int cellsExplored() {
-    return solver.getNumCellsExplored();
+    return explored;
   } // end of cellsExplored()
-
-  // #################### Main solving method ####################
-  private void wallFollowerSolveMaze(Maze maze, Cell cell, int numVisited) {
-    // List of possible directions cell can move in
-    List<Integer> paths;
-    Cell move = new Cell(0, 0);
-
-    // Keep going until at exit
-    // while(!isAtExit(maze, cell)) {
-    //
-    // }
-
-    // System.out.println("Num paths: " + paths.size());
-    // for(int i = 0; i < paths.size(); i++) {
-    //   int direction = paths.get(i);
-    //   String dirString = "";
-    //
-    //   if (direction == Maze.EAST)
-    //     dirString = "EAST";
-    //   if (direction == Maze.WEST)
-    //     dirString = "WEST";
-    //   if (direction == Maze.NORTH)
-    //     dirString = "NORTH";
-    //   if (direction == Maze.SOUTH)
-    //     dirString = "SOUTH";
-    //
-    //   System.out.println(" - " + dirString);
-    // }
-
-    // If only one possible path, move in that direction
-    // if (paths.size() == 1) {
-    //   move = getMovement(maze.type, paths.get(0));
-    //   System.out.println("Movement in: " + move.r + "," + move.c);
-    // }
-    // Otherwise pick one consistent path each time (Left/Right)
-
-    // for (int j = 0; j < 5; j++) {
-      System.out.println("\nAt Cell: " + cell.r + "," + cell.c);
-      paths = getPossiblePaths(maze, cell);
-
-      if(paths.size() > 1) {
-        System.out.println("Multiple paths: ");
-      } else {
-        move = getMovement(maze.type, paths.get(0));
-      }
-
-      System.out.println("Selected: " + move.r + "," + move.c);
-      cell.r += move.r;
-      cell.c += move.c;
-      maze.drawFtPrt(cell);
-    // }
-  }
-
-  // #################### Utility functions ####################
-  private boolean isAtExit(Maze maze, Cell cell) {
-    int currRow = cell.r;
-    int currCol = cell.c;
-    int exitRow = maze.exit.r;
-    int exitCol = maze.exit.c;
-
-    if (currRow == exitRow && currCol == exitCol) {
-      solver.setSolved();
-      return true;
-    }
-
-    return false;
-  }
-
-  // At cell, return all possible paths
-  private List<Integer> getPossiblePaths(Maze maze, Cell cell) {
-    // Check from current cell the possible paths and store it in the list
-    List<Integer> paths = new ArrayList<Integer>();
-
-    // Check all walls, for those that aren't null, check whether they are present
-    // If not it is possible to move in that direction
-
-    for (int direction = 0; direction < Maze.NUM_DIR; direction++) {
-      // 1. Check if there is a wall in that direction
-      if (maze.map[cell.r][cell.c].wall[direction] != null) {
-        // 2. If so check if it is present
-        if (maze.map[cell.r][cell.c].wall[direction].present == false)
-          paths.add(direction); // No wall: there is a possible path here
-      }
-    }
-
-    return paths;
-  }
-
-  // Return directional shift in both row and col given a direction
-  private Cell getMovement(int mazeType, int direction) {
-    int[] directions, rowShift, colShift;
-    int numDirs = 0, index = 0, moveR = 0, moveC = 0;
-
-    // Determine direction type to use (4 points = cardinals vs 6 = ordinals)
-    if(mazeType == Maze.NORMAL) {
-      directions = CARDINALS;
-      numDirs = NUM_CARDINALS;
-      rowShift = CARDINAL_ROW_SHIFT;
-      colShift = CARDINAL_COL_SHIFT;
-    } else {
-      directions = ORDINALS;
-      numDirs = NUM_ORDINALS;
-      rowShift = ORDINAL_ROW_SHIFT;
-      colShift = ORDINAL_COL_SHIFT;
-    }
-
-    // Loop through to find matching index for the direction
-    for (int i = 0; i < numDirs; i++) {
-      if (directions[i] == direction)
-        index = i;
-    }
-
-    moveR = rowShift[index];
-    moveC = colShift[index];
-
-    Cell movement = new Cell(moveR, moveC);
-    return movement;
-  }
 
 } // end of class WallFollowerSolver
