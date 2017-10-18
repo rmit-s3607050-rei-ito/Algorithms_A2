@@ -7,67 +7,96 @@ import java.util.*;
 
 public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
-  // Range for directions
-  final static int NUM_NORMAL_DIR = 4;
+  // Cardinal directions for rectangle shape: N, S, E, W
+  final static int NUM_CARDINALS = 4;
   final static int[] CARDINALS = new int[] { Maze.NORTH, Maze.SOUTH, Maze.EAST, Maze.WEST };
   final static int[] CARDINAL_ROW_SHIFT = new int[] { 1, -1, 0, 0 };
   final static int[] CARDINAL_COL_SHIFT = new int[] { 0, 0, 1, -1 };
 
+  // Ordinal directions for hex shape: NE, NW, SE, SW, E, W
+  final static int NUM_ORDINALS = Maze.NUM_DIR;
+  final static int[] ORDINALS = new int[] { Maze.NORTHEAST, Maze.NORTHWEST,
+                                            Maze.SOUTHEAST, Maze.SOUTHWEST,
+                                            Maze.EAST, Maze.WEST,};
+  final static int[] ORDINAL_ROW_SHIFT = new int[] { 1, 1, -1, -1, 0, 0 };
+  final static int[] ORDINAL_COL_SHIFT = new int[] { 1, 0, 0, -1, 1, -1 };
+
   @Override
   public void generateMaze(Maze maze) {
-    // Create an array to check all individual cells in the maze, whether they have been visited
-    boolean visited[][] = new boolean[maze.sizeR][maze.sizeC];
+    // rowSize and colSize for checking off visited cells, by default for normal/tunnel
+    int rowSize = maze.sizeR;
+    int colSize = maze.sizeC;
+    // Create an array to check all individual cells in the maze, whether visited
+    boolean visited[][];
     // Create list to store previous directions, used for backtracking
     List<Cell> previous = new ArrayList<Cell>();
     // Initialize total number of cells to check
     int toVisit = maze.sizeR * maze.sizeC;
+    // Randomly pick a starting cell / starting hex
+    Cell startCell = randomizeStartCell(maze);
 
-    // Randomly pick a starting cell and visit it, update number left to visit
-    Cell start = randomizeStartCell(maze.sizeR, maze.sizeC);
-    toVisit = visitCell(maze, start, visited, toVisit);
+    // Change column dimensions if hex maze used
+    if (maze.type == Maze.HEX)
+      colSize = maze.sizeC + (maze.sizeR + 1) / 2;
 
-    // Go through and generate the maze depending on the type
-    if (maze.type == Maze.NORMAL)
-      generateNormalMaze(maze, start, visited, toVisit, previous);
-    else if (maze.type == Maze.HEX)
-      generateHexMaze(maze);
+    // Initialize array of bools for visited cells and visit the first starting cell
+    visited = new boolean[rowSize][colSize];
+    toVisit = visitCell(maze, startCell, visited, toVisit);
 
+    // Recursively go through the rest of the maze to map it out
+    recursivelyBacktrack(maze, startCell, visited, toVisit, previous);
   } // end of generateMaze()
 
   // #################### Maze generation ####################
-  // Normal type maze
-  private void generateNormalMaze(Maze maze, Cell cell, boolean[][]visited, int toVisit, List<Cell> prev) {
-    List<Integer> directions = new ArrayList<Integer>();
+  private void recursivelyBacktrack(Maze maze, Cell cell, boolean[][]visited, int toVisit, List<Cell> prev) {
+    List<Integer> possibleDirs = new ArrayList<Integer>();
     Cell path;
-    int index, direction, lastDir;
-    int rowMove, colMove, rowEnd, colEnd, prevR, prevC;
+    int index, direction, lastDir, numDirs;  // Directions and indexing
+    int rowMove, colMove, rowEnd, colEnd, prevR, prevC; // Storing movement rows/cols
+    int[] directions, rowShift, colShift; // Arrays accessed to get data
+
+    // Determine direction type to use (4 points = cardinals vs 6 = ordinals)
+    if(maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL) {
+      directions = CARDINALS;
+      numDirs = NUM_CARDINALS;
+      rowShift = CARDINAL_ROW_SHIFT;
+      colShift = CARDINAL_COL_SHIFT;
+    } else {
+      directions = ORDINALS;
+      numDirs = NUM_ORDINALS;
+      rowShift = ORDINAL_ROW_SHIFT;
+      colShift = ORDINAL_COL_SHIFT;
+    }
 
     // Terminating condition, every cell has been visited
     if (toVisit == 0)
       return;
 
+    // [DEBUG] - Uncomment to view how many cells left to process
+    // System.out.println("Cells left: " + toVisit);
+
     // Check in each direction for current cell
-    for (int i = 0; i < NUM_NORMAL_DIR; i++) {
+    for (int i = 0; i < numDirs; i++) {
       // Calculate end point of direction
-      rowEnd = cell.r + CARDINAL_ROW_SHIFT[i];
-      colEnd = cell.c + CARDINAL_COL_SHIFT[i];
+      rowEnd = cell.r + rowShift[i];
+      colEnd = cell.c + colShift[i];
 
       // When cell is not out of bounds
-      if (inBounds(rowEnd, colEnd, maze.sizeR, maze.sizeC)) {
+      if (inBounds(maze, rowEnd, colEnd)) {
         // If cell has not been visited add path to it as a possible direction
         if(!visited[rowEnd][colEnd])
-          directions.add(i);
+          possibleDirs.add(i);
       }
     }
 
     // When there is a possible direction to move in, pick one and move to it
-    if (directions.size() > 0) {
+    if (possibleDirs.size() > 0) {
       // Pick a random index for a direction and get it from the cardinals
-      index = pickRandomDirection(directions);
-      direction = CARDINALS[index];
+      index = pickRandomDirection(possibleDirs);
+      direction = directions[index];
       // Store movement in 'path' variable
-      rowMove = CARDINAL_ROW_SHIFT[index];
-      colMove = CARDINAL_COL_SHIFT[index];
+      rowMove = rowShift[index];
+      colMove = colShift[index];
       path = new Cell(rowMove, colMove);
       // Remove and hide wall in path
       maze.map[cell.r][cell.c].wall[direction].present = false;
@@ -79,7 +108,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
       // Store previous direction for backtracking the recursively repeat
       prev.add(path);
-      generateNormalMaze(maze, cell, visited, toVisit, prev);
+      recursivelyBacktrack(maze, cell, visited, toVisit, prev);
     }
     else { // directions.size() == 0: Dead end has been reached, backtrack
       // Get direction of last move made
@@ -92,24 +121,31 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
       cell.r += (-1 * prevR);
       cell.c += (-1 * prevC);
       // Recursively call again moving in opposite direction
-      generateNormalMaze(maze, cell, visited, toVisit, prev);
+      recursivelyBacktrack(maze, cell, visited, toVisit, prev);
     }
-  }
-
-  private void generateHexMaze(Maze maze) {
-
   }
 
   // #################### Utility functions ####################
   // Select random starting position for a cell
-  private Cell randomizeStartCell(int maxRow, int maxCol) {
+  private Cell randomizeStartCell(Maze maze) {
     Random rand = new Random();
     int min, row, col;
+    int maxRow = maze.sizeR;
+    int maxCol = maze.sizeC;
 
     min = 0;  // Arrays start from 0
     row = rand.nextInt(maxRow) + min;
-    col = rand.nextInt(maxCol) + min;
 
+    // Further restrict values if hex type maze
+    if (maze.type == Maze.HEX) {
+      // Cases: When row is even or odd, which affects col generated
+      if (row % 2 == 0) // Even
+        min = row / 2;
+      else              // Odd
+        min = (row + 1) / 2;
+    }
+
+    col = rand.nextInt(maxCol) + min;
     Cell cell = new Cell(row, col);
 
     return cell;
@@ -125,7 +161,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
     return index;
   }
 
-  // Mark cell as visited + reduce total number of cells left to visit by 1
+  // Mark cell as visited + reduce total number of cells left to visit by 1 and return
   private int visitCell(Maze maze, Cell cell, boolean[][]visited, int toVisit) {
     visited[cell.r][cell.c] = true;
     toVisit--;
@@ -135,11 +171,24 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
   }
 
   // Check to ensure coordinates are inside the maze
-  private boolean inBounds(int row, int col, int rowMax, int colMax) {
-    if (row < 0 || col < 0 || row >= rowMax || col >= colMax)
-      return false;
+  private boolean inBounds(Maze m, int r, int c) {
+    // Minimum and maxiumum values for row and col
+    int minR = 0, maxR = m.sizeR;
+    int minC = 0, maxC = m.sizeC;
 
-    return true;
+    /* Hex maze type use same check in randomizeStartHex:
+     * Have to determine col boundary based on row */
+    if (m.type == Maze.HEX) {
+      if (r % 2 == 0)
+        minC = r / 2;
+      else
+        minC = (r + 1) / 2;
+
+      maxC += minC;
+    }
+
+    // Check row and col is between min and max
+    return r >= minR && r < maxR && c >= minC && c < maxC;
   }
 
 } // end of class RecursiveBacktrackerGenerator
