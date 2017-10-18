@@ -93,7 +93,7 @@ public class WallFollowerSolver implements MazeSolver {
   private void wallFollowerSolveMaze(Maze maze, Cell cell, int numVisited) {
     // List of possible directions cell can move in
     List<Integer> paths;
-    Cell move;
+    Cell move = new Cell(0, 0);
 
     // Keep going until at exit
     // while(!isAtExit(maze, cell)) {
@@ -124,25 +124,21 @@ public class WallFollowerSolver implements MazeSolver {
     // }
     // Otherwise pick one consistent path each time (Left/Right)
 
-    for (int j = 0; j < 5; j++) {
+    // for (int j = 0; j < 5; j++) {
       System.out.println("\nAt Cell: " + cell.r + "," + cell.c);
       paths = getPossiblePaths(maze, cell);
 
       if(paths.size() > 1) {
         System.out.println("Multiple paths: ");
-        for (int i = 0; i < paths.size(); i++) {
-          move = getMovement(maze.type, paths.get(i));
-          System.out.println(" - Move: " + move.r + "," + move.c);
-          
-        }
+      } else {
+        move = getMovement(maze.type, paths.get(0));
       }
 
-      Cell chosen = getMovement(maze.type, paths.get(0));
-      System.out.println("Selected: " + chosen.r + "," + chosen.c);
-      cell.r += chosen.r;
-      cell.c += chosen.c;
+      System.out.println("Selected: " + move.r + "," + move.c);
+      cell.r += move.r;
+      cell.c += move.c;
       maze.drawFtPrt(cell);
-    }
+    // }
   }
 
   // #################### Utility functions ####################
@@ -160,6 +156,7 @@ public class WallFollowerSolver implements MazeSolver {
     return false;
   }
 
+  // At cell, return all possible paths
   private List<Integer> getPossiblePaths(Maze maze, Cell cell) {
     // Check from current cell the possible paths and store it in the list
     List<Integer> paths = new ArrayList<Integer>();
@@ -179,6 +176,7 @@ public class WallFollowerSolver implements MazeSolver {
     return paths;
   }
 
+  // Return directional shift in both row and col given a direction
   private Cell getMovement(int mazeType, int direction) {
     int[] directions, rowShift, colShift;
     int numDirs = 0, index = 0, moveR = 0, moveC = 0;
