@@ -16,20 +16,21 @@ public class WallFollowerSolver implements MazeSolver {
 
   @Override
   public void solveMaze(Maze maze) {
-    int colSize = maze.sizeC;
+    int colSize = maze.sizeC; //get the correct size depending on maze type
     if (maze.type == Maze.HEX)
       colSize += (maze.sizeR+1) / 2;
-    boolean[][] visited = new boolean[maze.sizeR][colSize];
-    Cell curr = maze.entrance;
-    int facing = getStartFace(curr);
-    maze.drawFtPrt(maze.entrance);
-    explored++;
+    boolean[][] visited = new boolean[maze.sizeR][colSize]; //visited array
+    Cell curr = maze.entrance; //set the current to the entrance cell
+    int facing = getStartFace(curr); //pick a random start direction to face
+    maze.drawFtPrt(maze.entrance); //draw dot at start
+    visited[curr.r][curr.c] = true; //set visited to true
+    explored++; //increment explored nodes
 
-    while (!solved) {
-      int[] priority;
-      if (maze.type == Maze.NORMAL) {
-        priority = new int[4];
-        switch (facing) {
+    while (!solved) { //solver loop until solved
+      int[] priority; //priority direction array
+      if (maze.type == Maze.NORMAL || maze.type == Maze.TUNNEL) {
+        priority = new int[4]; //normal maze priority
+        switch (facing) { //depending where it's facing change priorities
           case Maze.NORTH:
             priority[0] = Maze.EAST;
             priority[1] = Maze.NORTH;
@@ -55,9 +56,9 @@ public class WallFollowerSolver implements MazeSolver {
             priority[3] = Maze.EAST;
             break;
         }
-      } else {
-        priority = new int[6];
-        switch (facing) {
+      } else { //NOTE: hex maze solver doesn't work
+        priority = new int[6]; //hex maze priority
+        switch (facing) { //depending where it's facing change priorities
           case Maze.NORTHEAST:
             priority[0] = Maze.EAST;
             priority[1] = Maze.NORTHEAST;
@@ -109,48 +110,48 @@ public class WallFollowerSolver implements MazeSolver {
         }
       }
 
-      for (int i = 0; i < priority.length; i++) {
-        if (curr == maze.exit) {
-          solved = true;
-          explored++;
-          break;
+      for (int i = 0; i < priority.length; i++) { //loop through priority directions
+        if (curr == maze.exit) { //if reached end
+          solved = true; //solved is true
+          explored++; //add last explored cell
+          break; //end found, break from loop
         } else if (!curr.wall[priority[i]].present) {
-          facing = priority[i];
-          maze.drawFtPrt(curr.neigh[priority[i]]);
-          if (!visited[curr.r][curr.c]) {
-            visited[curr.r][curr.c] = true;
-            explored++;
+          facing = priority[i]; //change facing direction
+          maze.drawFtPrt(curr.neigh[priority[i]]); //draw dot on neighbor
+          if (!visited[curr.r][curr.c]) { //visited check
+            visited[curr.r][curr.c] = true; //set visited location to true
+            explored++; //increment explored count
           }
-          curr = curr.neigh[priority[i]];
-          break;
+          curr = curr.neigh[priority[i]]; //change curr to neighbor
+          break; //cell moved, break from loop
         }
       }
     }
   } // end of solveMaze()
 
+  // random start direction
   private int getStartFace(Cell start) {
     Random rand = new Random();
-    List<Integer> randDir = new ArrayList<Integer>();
-    for (int i = 0; i < start.wall.length; i++) {
-      if (start.wall[i] != null) {
-        if (!start.wall[i].present && !start.wall[i].drawn) {
-          randDir.add(i);
-        }
+    List<Integer> randDir = new ArrayList<Integer>(); //list of possible directions
+    for (int i = 0; i < start.wall.length; i++) { //loop through all cell walls
+      if (start.wall[i] != null) { //check for null walls
+        if (!start.wall[i].present && !start.wall[i].drawn) //if no wall exists
+          randDir.add(i); //add to direction list
       }
     }
 
-    return randDir.get(rand.nextInt(randDir.size()));
+    return randDir.get(rand.nextInt(randDir.size())); //return a random direction from list
   }
 
   @Override
   public boolean isSolved() {
-    return solved;
+    return solved; //return solved boolean
   } // end if isSolved()
 
 
   @Override
   public int cellsExplored() {
-    return explored;
+    return explored; //return explored count
   } // end of cellsExplored()
 
 } // end of class WallFollowerSolver
