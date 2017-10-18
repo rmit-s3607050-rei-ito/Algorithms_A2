@@ -16,38 +16,38 @@ public class ModifiedPrimsGenerator implements MazeGenerator {
     boolean in[][] = new boolean[maze.sizeR][colSize];
     List<Cell> cellList = new ArrayList<Cell>();
     List<Cell> frontier = new ArrayList<Cell>();
-    // 1. Pick random starting cell
+
+    // Pick random starting cell
     Cell start = randomizeStartCell(maze);
 
-    // Start loop here
-    // 1. Add starting cell to set cellList
+    // Add starting cell to set cellList
     cellList.add(start);
     in[start.r][start.c] = true;
 
-    // 1. Put all neighbouring cells of starting cell into frontier
+    // Put all neighbouring cells of starting cell into frontier
     addNeighbours(maze, start, in, frontier);
     int totalCells = maze.sizeR * maze.sizeC;
 
+    // Iterate until cell list's size is equal to total number of cless (all visited)
     while (cellList.size() != totalCells) {
-      // 2. Randomly select cell from frontier set
+      // Randomly select cell from frontier set
       Cell selected = frontier.get(rand.nextInt(frontier.size()));
-      // 2. Remove it from frontier set
+      // Remove it from frontier set
       frontier.remove(selected);
-      // 2. Randomly select another cell 'closest' that is in the cellList that is adjacent to selected cell
+      // Randomly select another cell 'closest' that is in the cellList that is adjacent to selected cell
       Cell closest = getClosestNeighbour(maze, cellList, selected);
 
-      // 2. Get direction between selected cell and the closest
+      // Get direction between selected cell and the closest then carve a path
       int dir = getDirection(maze.type, selected, closest);
-      // 2. Carve a path
       maze.map[selected.r][selected.c].wall[dir].present = false;
       maze.map[selected.r][selected.c].wall[dir].drawn = false;
 
-      // 3. Add selected cell to set cellList
+      // Add selected cell to set cellList
       cellList.add(selected);
       in[selected.r][selected.c] = true;
 
-      // 3. Add neighbours of selected cell to the frontier
-      addNeighbours(maze, selected, in, frontier);   // Remove
+      // Add neighbours of selected cell to the frontier
+      addNeighbours(maze, selected, in, frontier);
 
       // [DEBUG] - Uncomment to view how many cells left to process
       // System.out.println("Cells to process = " + cellList.size());
@@ -81,7 +81,7 @@ public class ModifiedPrimsGenerator implements MazeGenerator {
   private void addNeighbours(Maze maze, Cell cell, boolean[][] visited, List<Cell> frontier) {
     int index, row, col;
 
-    // 1. Store all visitable neighbours in a list
+    // Loop through and store all visitable neighbours in a list
     for (int i = 0; i < Maze.NUM_DIR; i++) {
       // Access actual map stored in maze to get neighbours
       if(maze.map[cell.r][cell.c].neigh[i] != null) {
@@ -89,7 +89,7 @@ public class ModifiedPrimsGenerator implements MazeGenerator {
         col = maze.map[cell.r][cell.c].neigh[i].c;
         // Check if it has been visited or not, if not there is a visitable neighbour
         if(!visited[row][col] && !isInFrontier(frontier, row, col))
-          frontier.add(maze.map[cell.r][cell.c].neigh[i]);
+          frontier.add(maze.map[cell.r][cell.c].neigh[i]);  // Add it to the list
       }
     }
   }

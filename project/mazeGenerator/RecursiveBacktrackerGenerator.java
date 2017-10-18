@@ -7,6 +7,8 @@ import maze.Cell;
 
 public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
+  // NOTE: Tunnels have not been implemented
+
   // 1. Cardinal directions for rectangle shape: N, S, E, W
   final static int NUM_CARDINALS = 4;
   final static int[] CARDINALS = new int[] { Maze.NORTH, Maze.SOUTH, Maze.EAST, Maze.WEST };

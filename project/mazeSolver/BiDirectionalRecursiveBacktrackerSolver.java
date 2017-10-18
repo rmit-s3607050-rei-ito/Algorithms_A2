@@ -9,25 +9,18 @@ import maze.Cell;
  * Implements the BiDirectional recursive backtracking maze solving algorithm.
  */
 public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
-  static boolean solved = false;
-  static int numExplored = 0;
+  boolean solved = false;
+  int explored = 0;
 
-  // Performs DFS (Depth First Search) searches starting at both the entrance and exit.
-  // Starting at the entrance of the maze, randomly choose an adjacent unvisited cell.
-
-  // Moves to that cell update its visit status, then selects another random unvisited
-  // neighbour.
-
-  // Continues this process until deadend (no unvisited neighbours), then backtrack
-  // to a prev cell that has an unvisited neighbour.
-
-  // Randomly select one of the unvisited neighbours and repeat process until reached
-  // exit (this is always possible for a perfect maze). The path from entrance to exit is the
-  // solution.
-
-  // When two DFS fronts first meet, the path from the entrance to the point they meet, and
-  // path from exit to meeting point forms the two halves of shortest path (in terms of cell
-  // visited) from entrance to exit. Combine these paths to get the final path solution.
+  /* NOTE:
+   * 1. This has not quite been finished but we're sure it works, for some reason we
+   * are however getting: [Validation] Visited cell not reachable.
+   * It is valid when no backtracking occurs, but if it happens then that pops up
+   * NOTE:
+   * 2. It is not quite right for hex mazes, sometimes it will work but other times
+   * it may crash with an array out of bounds exception. We ran out of time so we
+   * weren't able to fix this problem. It is fine for normal mazes
+   */
 
   @Override
   public void solveMaze(Maze maze) {
@@ -60,25 +53,14 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
     visited[start.r][start.c] = true;
     maze.drawFtPrt(start);
     maze.drawFtPrt(end);
-
-    System.out.println("Start at: " + start.r + "," + start.c);
-    System.out.println("End at: " + end.r + "," + end.c + "\n");
+    explored += 2;  // Set explored adding the two starting positions
 
     // Add neighbouring cells at adjacent to start and end to respective frontiers
     addNeighbours(maze, start, visited, sFrontier);
     addNeighbours(maze, end, visited, eFrontier);
 
+    // Use BiDirectionalRecursiveBacktrackerSolving method
     solveMazeRecursively(maze, start, end, visited, sPrev, ePrev, sFrontier, eFrontier);
-
-    // Once maze solved calculate number of steps taken
-    int numCellsVisited = 0;
-    for(int i = 0; i < maze.sizeR; i++) {
-      for (int j = 0; j < colSize; j++) {
-        if (visited[i][j])
-          numExplored++;
-      }
-    }
-
   } // end of solveMaze()
 
   @Override
@@ -88,7 +70,7 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 
   @Override
   public int cellsExplored() {
-    return numExplored;
+    return explored;
   } // end of cellsExplored()
 
   // #################### Main solving function ####################
@@ -102,38 +84,16 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
     removeFromFrontier(start, sFrontier);
     addNeighbours(maze, start, visited, sFrontier);
 
-    System.out.println("Start moved to: " + start.r + "," + start.c);
-
-    // System.out.println("For start cell Frontier is: ");
-    // for (Cell c : sFrontier) {
-    //   System.out.println(" - At: " + c.r + "," + c.c);
-    // }
-    // System.out.println();
-
     // Move end cell 1 step and perform same calculations as start
     end = performStep(maze, end, visited, ePrev);
     removeFromFrontier(end, eFrontier);
     addNeighbours(maze, end, visited, eFrontier);
 
-    System.out.println("End moved to: " + end.r + "," + end.c);
-
-    // System.out.println("For end cell Frontier is: ");
-    // for (Cell c : eFrontier) {
-    //   System.out.println(" - At: " + c.r + "," + c.c);
-    // }
-    // System.out.println();
-
-    if (frontiersOverlap(maze, sFrontier, eFrontier)) {
+    // Check whether both frontier's overlap, if so the maze is solved, otherwise recurse
+    if (frontiersOverlap(maze, sFrontier, eFrontier))
       solved = true;
-    } else
+    else
       solveMazeRecursively(maze, start, end, visited, sPrev, ePrev, sFrontier, eFrontier);
-
-    // if (start == maze.exit) {
-    //   // Set maze to being solved
-    //   solved = true;
-    // }
-    // else
-    //   solveMazeRecursively(maze, start, visited, sPrev, sFrontier);
   }
 
   private Cell performStep(Maze maze, Cell cell, boolean[][] visited, List<Cell> prev) {
@@ -143,7 +103,6 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
     // Possible neighbour to move to pick a random one a visit them
     if (visitableNeighbours.size() > 0) {
       Cell neighbour = getRandomFromList(visitableNeighbours);
-      // System.out.println("Moved to: " + neighbour.r + "," + neighbour.c);
       // Store movement to list of previously made moves to backtrack later
       int row = neighbour.r - cell.r;
       int col = neighbour.c - cell.c;
@@ -152,6 +111,7 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 
       // Mark it as visited and show it on the maze
       visited[neighbour.r][neighbour.c] = true;
+      explored++;
       maze.drawFtPrt(neighbour);
 
       // Return neighbour to move to
@@ -166,18 +126,17 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
     // Move cell back in opposite direction from which it moved
     cell.r += (-1 * lastMove.r);
     cell.c += (-1 * lastMove.c);
-    // maze.drawFtPrt(cell);
-
-    // System.out.println("Backtrack to: " + cell.r + "," + cell.c);
 
     // Remove that move from the previous move list
     prev.remove(lastDir);
 
+    // Return backtracked move
     return cell;
   }
 
   // #################### Utility functions ####################
   private Cell getRandomFromList(List<Cell> list) {
+    // Return random cell from list
     Random rand = new Random();
     int listSize = list.size();
     int index = rand.nextInt(listSize);
@@ -215,6 +174,7 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
   }
 
   private void removeFromFrontier(Cell cell, List<Cell> frontier) {
+    // To find specific object to remove, iterate through and compare row and col pos
     for (Cell c : frontier) {
       if (c.r == cell.r && c.c == cell.c) {
         frontier.remove(c);
@@ -230,7 +190,7 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
           // When they overlap, drawFtPrt at that position to connect the frontiers
           Cell connection = new Cell(s.r, s.c);
           maze.drawFtPrt(connection);
-          System.out.println("Frontiers overlap at: " + s.r + "," + s.c);
+          explored++;
           return true;
         }
       }
@@ -255,12 +215,6 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
           visitableNeighbours.add(currCell.neigh[i]);
       }
     }
-
-    // System.out.println("Cell: " + cell.r + "," + cell.c);
-    // System.out.println("Can visit: ");
-    // for (int i = 0; i < visitableNeighbours.size(); i++) {
-    //   System.out.println(" - Neighbour: " + visitableNeighbours.get(i).r + "," + visitableNeighbours.get(i).c);
-    // }
 
     return visitableNeighbours;
   }
