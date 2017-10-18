@@ -38,10 +38,8 @@ public class GrowingTreeGenerator implements MazeGenerator {
     // Select a random starting cell and add it to the cell set
     Cell startCell = randomizeStartCell(maze);
     cellSet.add(startCell);
-    // Visit it, calling maze.drawFtPrt() to update internal maze
+    // Visit it, calling maze.drawFtPrt() and generate the rest of the maze
     visited[startCell.r][startCell.c] = true;
-    maze.drawFtPrt(startCell);
-
     generateGrowingTreeMaze(maze, cellSet, visited);
   }
 
@@ -74,7 +72,6 @@ public class GrowingTreeGenerator implements MazeGenerator {
 
         // Set the neighbour as visited
         visited[neighbour.r][neighbour.c] = true;
-        maze.drawFtPrt(neighbour);    // Set it drawn in the maze 
         cellSet.add(neighbour);       // Add the neighbour to the set
       }
 
