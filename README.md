@@ -1,5 +1,5 @@
 README
-COSC1254 Programming Using C++ Assignment 2
+COSC2123 Algorithms & Analysis Assignment 2
 
 AUTHORS
 Pacific Thai - s3429648
