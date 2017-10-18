@@ -23,11 +23,6 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
   @Override
   public void generateMaze(Maze maze) {
-    // rowSize and colSize for checking off visited cells, by default for normal/tunnel
-    int rowSize = maze.sizeR;
-    int colSize = maze.sizeC;
-    // Create an array to check all individual cells in the maze, whether visited
-    boolean visited[][];
     // Create list to store previous directions, used for backtracking
     List<Cell> previous = new ArrayList<Cell>();
     // Initialize total number of cells to check
@@ -35,20 +30,21 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
     // Randomly pick a starting cell / starting hex
     Cell startCell = randomizeStartCell(maze);
 
+    // colSize for checking off visited cells, default value for normal / tunnel mazes
+    int colSize = maze.sizeC;
     // Change column dimensions if hex maze used
     if (maze.type == Maze.HEX)
       colSize = maze.sizeC + (maze.sizeR + 1) / 2;
-
-    // Initialize array of bools for visited cells and visit the first starting cell
-    visited = new boolean[rowSize][colSize];
+    // Create array that is used to mark off visited cells and visit first starting cell
+    boolean visited[][] = new boolean[maze.sizeR][colSize];
     toVisit = visitCell(maze, startCell, visited, toVisit);
 
     // Recursively go through the rest of the maze to map it out
-    recursivelyBacktrack(maze, startCell, visited, toVisit, previous);
+    generateMazeRecursively(maze, startCell, visited, toVisit, previous);
   } // end of generateMaze()
 
   // #################### Maze generation ####################
-  private void recursivelyBacktrack(Maze maze, Cell cell, boolean[][]visited, int toVisit, List<Cell> prev) {
+  private void generateMazeRecursively(Maze maze, Cell cell, boolean[][]visited, int toVisit, List<Cell> prev) {
     List<Integer> possibleDirs = new ArrayList<Integer>();
     Cell path;
     int index, direction, lastDir, numDirs;  // Directions and indexing
@@ -108,7 +104,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
 
       // Store previous direction for backtracking the recursively repeat
       prev.add(path);
-      recursivelyBacktrack(maze, cell, visited, toVisit, prev);
+      generateMazeRecursively(maze, cell, visited, toVisit, prev);
     }
     else { // directions.size() == 0: Dead end has been reached, backtrack
       // Get direction of last move made
@@ -121,7 +117,7 @@ public class RecursiveBacktrackerGenerator implements MazeGenerator {
       cell.r += (-1 * prevR);
       cell.c += (-1 * prevC);
       // Recursively call again moving in opposite direction
-      recursivelyBacktrack(maze, cell, visited, toVisit, prev);
+      generateMazeRecursively(maze, cell, visited, toVisit, prev);
     }
   }
 
