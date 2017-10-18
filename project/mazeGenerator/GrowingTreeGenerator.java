@@ -73,7 +73,7 @@ public class GrowingTreeGenerator implements MazeGenerator {
       }
 
       // [DEBUG] - Uncomment to view how many cells left to process
-      System.out.println("Cells to process = " + cellSet.size());
+      // System.out.println("Cells to process = " + cellSet.size());
     }
   }
 
