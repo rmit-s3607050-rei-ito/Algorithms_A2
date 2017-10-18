@@ -6,6 +6,8 @@ import maze.Maze;
  * Implements the BiDirectional recursive backtracking maze solving algorithm.
  */
 public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
+  boolean solved = false;
+
 
   @Override
   public void solveMaze(Maze maze) {
@@ -16,8 +18,7 @@ public class BiDirectionalRecursiveBacktrackerSolver implements MazeSolver {
 
   @Override
   public boolean isSolved() {
-    // TODO Auto-generated method stub
-    return false;
+    return solved;
   } // end if isSolved()
 
 
