@@ -1,6 +1,0 @@
-• mazeType: {normal, tunnel, hex}.
-• generatorName: {recurBack, growingTree, modiPrim}.
-• solverName: {wallFollower, biDirrecurBack, sample, none}.
-• numRow numCol
-• entranceRow entranceCol
-• exitRow exitCol
