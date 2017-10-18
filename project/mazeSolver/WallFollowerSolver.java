@@ -41,16 +41,16 @@ public class WallFollowerSolver implements MazeSolver {
           break;
         case Maze.EAST:
           //System.out.println("East");
-          priority[0] = Maze.NORTH;
+          priority[0] = Maze.SOUTH;
           priority[1] = Maze.EAST;
-          priority[2] = Maze.SOUTH;
+          priority[2] = Maze.NORTH;
           priority[3] = Maze.WEST;
           break;
         case Maze.WEST:
           //System.out.println("West");
-          priority[0] = Maze.SOUTH;
+          priority[0] = Maze.NORTH;
           priority[1] = Maze.WEST;
-          priority[2] = Maze.NORTH;
+          priority[2] = Maze.SOUTH;
           priority[3] = Maze.EAST;
           break;
       }
